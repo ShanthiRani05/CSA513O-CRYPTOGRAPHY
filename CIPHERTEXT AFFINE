@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+
+// English letter frequency
+const float english_frequency[] = {0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015,
+                                   0.06094, 0.06966, 0.00153, 0.00772, 0.04025, 0.02406, 0.06749,
+                                   0.07507, 0.01929, 0.00095, 0.05987, 0.06327, 0.09056, 0.02758,
+                                   0.00978, 0.02360, 0.00150, 0.01974, 0.00074};
+
+int modInverse(int a, int m) {
+    a = a % m;
+    for (int x = 1; x < m; x++)
+        if ((a * x) % m == 1)
+            return x;
+    return -1;
+}
+
+int main() {
+    char ciphertext[] = "SHIVANI REDDY"; // Example ciphertext
+    int freq[26] = {0}; // Array to store frequency of each letter
+    int i, j;
+    int n = strlen(ciphertext);
+    float maxFreq = 0, secondMaxFreq = 0;
+    char mostFrequentChar, secondMostFrequentChar;
+
+    // Counting the frequency of each letter in the ciphertext
+    for (i = 0; i < n; i++) {
+        if (isalpha(ciphertext[i])) {
+            freq[toupper(ciphertext[i]) - 'A']++;
+        }
+    }
+
+    // Finding the most frequent and second most frequent letters
+    for (i = 0; i < 26; i++) {
+        if (freq[i] > maxFreq) {
+            secondMaxFreq = maxFreq;
+            secondMostFrequentChar = mostFrequentChar;
+            maxFreq = freq[i];
+            mostFrequentChar = 'A' + i;
+        } else if (freq[i] > secondMaxFreq) {
+            secondMaxFreq = freq[i];
+            secondMostFrequentChar = 'A' + i;
+        }
+    }
+
+    // Deduce the transformation parameters 'a' and 'b'
+    int mostFrequentCharIndex = mostFrequentChar - 'A';
+    int secondMostFrequentCharIndex = secondMostFrequentChar - 'A';
+    int a = (secondMostFrequentCharIndex - mostFrequentCharIndex + 26) % 26;
+    int b = (mostFrequentCharIndex - (a * 4)) % 26;
+
+    // Find the modular inverse of 'a' to decrypt the text
+    int a_inverse = modInverse(a, 26);
+
+    printf("Most frequent letter: %c\n", mostFrequentChar);
+    printf("Second most frequent letter: %c\n", secondMostFrequentChar);
+    printf("Deduced parameters: a = %d, b = %d\n", a, b);
+    printf("Decrypted Text: ");
+
+    // Decrypting the ciphertext
+    for (i = 0; i < n; i++) {
+        if (isalpha(ciphertext[i])) {
+            char ch = ciphertext[i];
+            char base = isupper(ch) ? 'A' : 'a';
+            int decrypted = ((a_inverse * ((ch - base) - b + 26)) % 26) + base;
+            printf("%c", decrypted);
+        } else {
+            printf("%c", ciphertext[i]);
+        }
+    }
+
+    printf("\n");
+
+    return 0;
+}
